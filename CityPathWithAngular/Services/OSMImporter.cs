@@ -21,45 +21,45 @@ namespace CityPathWithAngular.Services
             _neo4JRepository = neo4JRepository;
         }
 
-        public async void AddToDatabase()
-        {
-            var jsonString = await File.ReadAllTextAsync(@"Data\intersections.json");
-            var intersections = JsonSerializer.Deserialize<List<Intersection>>(jsonString);
-
-            await _neo4JRepository.WipeDatabase();
-            for (int i = 0; i < intersections.Count; i++)
-            {
-                await _neo4JRepository.AddIntersection(intersections[i]);
-            }
-
-            // var intersectionPair = intersections.Where(_ => _ != null)
-            //     .SelectMany(i1 => intersections.Where(_ => _ != null)
-            //         .Select(i2 => new IntersectionPair{i1 = i1, i2 = i2})
-            //     ).Distinct().ToList();
-
-            var intersectionPair = intersections
-                .SelectMany(i1 => intersections.Where(i2 =>
-                        (i1.Street1 == i2.Street1 || i1.Street1 == i2.Street2) || (i1.Street2 == i2.Street1 || i1.Street2 == i2.Street2))
-                    .Select(i2 => new IntersectionPair {i1 = i1, i2 = i2})
-                ).Distinct().Where(_ => _.i1.Street1 != _.i2.Street1 && _.i1.Street2 != _.i2.Street2).ToList();
-
-            for (int i = 0; i < intersectionPair.Count; i++)
-            {
-                await _neo4JRepository.AddPathBetweenIntersection(intersectionPair[i].i1, intersectionPair[i].i2);
-            }
-
-            var jsonText = await File.ReadAllTextAsync(@"Data\places.json");
-            var places = JsonSerializer.Deserialize<List<Place>>(jsonText);
-
-            for (int i = 0; i < places.Count; i++)
-            {
-                var closest = intersections
-                    .GroupBy(x => Math.Pow((places[i].Coordinate.Latitude - x.Lat), 2) + Math.Pow((places[i].Coordinate.Longitude - x.Lon), 2))
-                    .OrderBy(x => x.Key)
-                    .First();
-                await _neo4JRepository.AddPlace(places[i], closest.FirstOrDefault(), closest.Key);
-            }
-        }
+        // public async void AddToDatabase()
+        // {
+        //     var jsonString = await File.ReadAllTextAsync(@"Data\intersections.json");
+        //     var intersections = JsonSerializer.Deserialize<List<Intersection>>(jsonString);
+        //
+        //     await _neo4JRepository.WipeDatabase();
+        //     for (int i = 0; i < intersections.Count; i++)
+        //     {
+        //         await _neo4JRepository.AddIntersection(intersections[i]);
+        //     }
+        //
+        //     // var intersectionPair = intersections.Where(_ => _ != null)
+        //     //     .SelectMany(i1 => intersections.Where(_ => _ != null)
+        //     //         .Select(i2 => new IntersectionPair{i1 = i1, i2 = i2})
+        //     //     ).Distinct().ToList();
+        //
+        //     var intersectionPair = intersections
+        //         .SelectMany(i1 => intersections.Where(i2 =>
+        //                 (i1.Street1 == i2.Street1 || i1.Street1 == i2.Street2) || (i1.Street2 == i2.Street1 || i1.Street2 == i2.Street2))
+        //             .Select(i2 => new IntersectionPair {i1 = i1, i2 = i2})
+        //         ).Distinct().Where(_ => _.i1.Street1 != _.i2.Street1 && _.i1.Street2 != _.i2.Street2).ToList();
+        //
+        //     for (int i = 0; i < intersectionPair.Count; i++)
+        //     {
+        //         await _neo4JRepository.AddPathBetweenIntersection(intersectionPair[i].i1, intersectionPair[i].i2);
+        //     }
+        //
+        //     var jsonText = await File.ReadAllTextAsync(@"Data\places.json");
+        //     var places = JsonSerializer.Deserialize<List<Place>>(jsonText);
+        //
+        //     for (int i = 0; i < places.Count; i++)
+        //     {
+        //         var closest = intersections
+        //             .GroupBy(x => Math.Pow((places[i].Coordinate.Latitude - x.Lat), 2) + Math.Pow((places[i].Coordinate.Longitude - x.Lon), 2))
+        //             .OrderBy(x => x.Key)
+        //             .First();
+        //         await _neo4JRepository.AddPlace(places[i], closest.FirstOrDefault(), closest.Key);
+        //     }
+        // }
 
         public void GenerateIntersections()
         {
@@ -68,8 +68,10 @@ namespace CityPathWithAngular.Services
                 var fileStreamSource = new PBFOsmStreamSource(fileStream);
                 var streets = fileStreamSource.Where(_ => _.Tags != null)
                     .Where(_ => _.Type == OsmGeoType.Way)
-                    .Where(_ => _.Tags.ContainsKey("highway") && _.Tags.ContainsKey("name")).DistinctBy(_ => _.Tags["name"]).Select(_ => (Way) _)
-                    .Where(_ => !_.Tags["name"].Contains('(') && !_.Tags["name"].Contains(')'))
+                    .Where(_ => _.Tags.ContainsKey("highway"))
+                    // .Where(_ => _.Tags.ContainsKey("name"))
+                    // .Where(_ => !_.Tags["name"].Contains('(') && !_.Tags["name"].Contains(')'))
+                    .Select(_ => (Way) _)
                     .ToList();
                 var nodes = fileStreamSource.Where(_ => _.Type == OsmGeoType.Node).ToList();
 
@@ -105,8 +107,8 @@ namespace CityPathWithAngular.Services
                     {
                         Lat = node.Latitude.Value,
                         Lon = node.Longitude.Value,
-                        Street1 = streets.Where(_ => _.Id == intersection.Street1Id).Select(_ => _.Tags["name"]).FirstOrDefault(),
-                        Street2 = streets.Where(_ => _.Id == intersection.Street2Id).Select(_ => _.Tags["name"]).FirstOrDefault(),
+                        Street1 = streets.Where(_ => _.Id == intersection.Street1Id).Select(_ => $"{_.Id.Value}").FirstOrDefault(),
+                        Street2 = streets.Where(_ => _.Id == intersection.Street2Id).Select(_ => $"{_.Id.Value}").FirstOrDefault(),
                     });
                 });
 

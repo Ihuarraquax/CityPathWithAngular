@@ -1,28 +1,24 @@
-
-
 <form class="form-inline">
     <div class="form-group mx-sm-3 mb-2">
-      <label for="searchInput" class="sr-only">Szukaj</label>
-      <input type="text" class="form-control" id="searchInput" placeholder="Szukaj" [formControl]="search">
+        <label for="searchInput" class="sr-only">Szukaj</label>
+        <input type="text" class="form-control" id="searchInput" placeholder="Szukaj" [formControl]="search">
     </div>
     <button type="submit" class="btn btn-primary mb-2" (click)="searchPlaces()">Szukaj</button>
-  </form>
+</form>
+
+<button class="btn btn-success" [routerLink]="['/places/new']">Nowe miejsce</button>
 
 <table class='table table-striped' aria-labelledby="tableLabel" *ngIf="places?.length > 0">
-  <thead>
-    <tr>
-      <th>id</th>
-      <th>nazwa</th>
-      <th>szerokość</th>
-      <th>długość</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr *ngFor="let place of places">
-      <td>{{ place.id }}</td>
-      <td>{{ place.name }}</td>
-      <td>{{ place.coordinate.latitude }}</td>
-      <td>{{ place.coordinate.longitude }}</td>
-    </tr>
-  </tbody>
+    <thead>
+        <tr>
+            <th>id</th>
+            <th>nazwa</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr *ngFor="let place of places">
+            <td>{{ place.id }}</td>
+            <td>{{ place.name }}</td>
+        </tr>
+    </tbody>
 </table>

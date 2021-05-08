@@ -10,6 +10,7 @@ import { HomeComponent } from './home/home.component';
 import { CounterComponent } from './counter/counter.component';
 import { FetchDataComponent } from './fetch-data/fetch-data.component';
 import { PlacesComponent } from './places/places.component';
+import { NewPlaceComponent } from './places/new-place/new-place.component';
 
 @NgModule({
   declarations: [
@@ -18,7 +19,8 @@ import { PlacesComponent } from './places/places.component';
     HomeComponent,
     CounterComponent,
     FetchDataComponent,
-    PlacesComponent
+    PlacesComponent,
+    NewPlaceComponent
   ],
   imports: [
     BrowserModule.withServerTransition({ appId: 'ng-cli-universal' }),
@@ -28,6 +30,7 @@ import { PlacesComponent } from './places/places.component';
     RouterModule.forRoot([
       { path: '', component: HomeComponent, pathMatch: 'full' },
       { path: 'counter', component: CounterComponent },
+      { path: 'places/new', component: NewPlaceComponent },
       { path: 'places', component: PlacesComponent },
       { path: 'fetch-data', component: FetchDataComponent },
     ])

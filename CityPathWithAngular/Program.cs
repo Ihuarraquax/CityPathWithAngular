@@ -23,9 +23,9 @@ namespace CityPathWithAngular
 
                 try
                 {
-                    osmImporter.GenerateIntersections();
-                    osmImporter.GeneratePlaces();
-                    osmImporter.AddToDatabase();
+                    // osmImporter.GenerateIntersections();
+                    // osmImporter.GeneratePlaces();
+                    // osmImporter.AddToDatabase();
                 }
                 catch (Exception ex)
                 {

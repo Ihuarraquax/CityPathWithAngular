@@ -1,0 +1,21 @@
+<div class="mb-3">
+    <label for="nazwa" class="form-label">Nazwa</label>
+    <input type="text" class="form-control" id="nazwa" placeholder="Nazwa miejsca" [(ngModel)]="model.name">
+</div>
+
+<button class="btn btn-success" (click)="addNewSasiad()">Dodaj sąsiadujące miejsce</button>
+
+<div *ngFor="let sasiad of model.sasiads">
+    <div class="row">
+        <div class="col">
+            <select class="form-select" [(ngModel)]="sasiad.name">
+                <option [value]="name" *ngFor="let name of availablePlacesNames">{{name}}</option>
+              </select>
+        </div>
+        <div class="col">
+          <input type="number" class="form-control" placeholder="Odległość (km)" [(ngModel)]="sasiad.distance">
+        </div>
+      </div>
+</div>
+
+<button class="btn btn-success" (click)="SavePlace()">Zapisz miejsce</button>
