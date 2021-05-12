@@ -7,17 +7,15 @@ namespace CityPathWithAngular.Models
 
         public long Id { get; set; }
         public string Name { get; set; }
-        public GeoCoordinate Coordinate { get; set; }
 
         public Place()
         {
             
         }
-        public Place(long id, string name, float latitude, float longitude)
+        public Place(long id, string name)
         {
             Id = id;
             Name = name;
-            Coordinate = new GeoCoordinate(latitude, longitude);
         }
     }
 }

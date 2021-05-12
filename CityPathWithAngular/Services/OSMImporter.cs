@@ -125,7 +125,7 @@ namespace CityPathWithAngular.Services
 
                 var nodes = fileStreamSource.Where(_ => _.Type == OsmGeoType.Node && _.Tags != null && _.Tags.ContainsKey("name"))
                     .Select(_ => (Node) _).ToList();
-                var places = nodes.Select(_ => new Place(_.Id.Value, _.Tags["name"], _.Latitude.Value, _.Longitude.Value)).ToList();
+                var places = nodes.Select(_ => new Place(_.Id.Value, _.Tags["name"])).ToList();
 
                 string json = JsonSerializer.Serialize(places);
                 File.WriteAllText(@"Data\places.json", json);

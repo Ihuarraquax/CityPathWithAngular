@@ -1,10 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using CityPathWithAngular.Extensions;
 using CityPathWithAngular.Models;
 using CityPathWithAngular.Models.RequestResponse;
-using CityPathWithAngular.Services;
 using Neo4j.Driver;
 
 namespace CityPathWithAngular.Repositories
@@ -12,11 +10,13 @@ namespace CityPathWithAngular.Repositories
     public interface INeo4jRepository
     {
         public Task<List<Place>> Search(string search);
+
         // Task WipeDatabase();
         // Task AddIntersection(Intersection intersection);
         // Task AddPathBetweenIntersection(Intersection a, Intersection b);
         Task<List<Place>> GetAllPlaces();
         Task NewPlace(NewPlaceModel model);
+        Task<TrackFinderResponse> FindTrack(TrackFinderRequest model);
     }
 
     public class Neo4jRepository : INeo4jRepository
@@ -140,9 +140,64 @@ namespace CityPathWithAngular.Repositories
                           (b:Place)
                         WHERE a.name = $name AND b.name = $name2
                         CREATE (a)-[r:Path {distance: $dist}]->(b)",
-                            new {name = model.Name,name2 = modelSasiad.Name, dist = modelSasiad.Distance}
+                            new {name = model.Name, name2 = modelSasiad.Name, dist = modelSasiad.Distance}
                         );
                     }
+                });
+            }
+            finally
+            {
+                await session.CloseAsync();
+            }
+        }
+
+        public async Task<TrackFinderResponse> FindTrack(TrackFinderRequest model)
+        {
+            var session = _driver.AsyncSession(WithDatabase);
+            try
+            {
+                return await session.ReadTransactionAsync(async transaction =>
+                {
+                    // await transaction.RunAsync(@"
+                    //     CALL gds.graph.create(
+                    //         'myGraph',
+                    //         'Place',
+                    //         'Path',
+                    //         {
+                    //             relationshipProperties: 'distance'
+                    //         }
+                    //     )
+                    //     ");
+                    var cursor = await transaction.RunAsync(@"
+                        MATCH (source:Place {name: '$name1'}), (target:Place {name: '$name2'})
+                        CALL gds.beta.shortestPath.dijkstra.stream({
+                            nodeProjection: 'Place',
+                            relationshipProjection: 'Path',
+                            relationshipProperties: 'distance',
+                            sourceNode: id(source),
+                            targetNode: id(target),
+                            relationshipWeightProperty: 'distance'
+                        })
+                        YIELD index, sourceNode, targetNode, totalCost, nodeIds, costs
+                        RETURN
+                            index,
+                            gds.util.asNode(sourceNode).name AS sourceNodeName,
+                            gds.util.asNode(targetNode).name AS targetNodeName,
+                            totalCost,
+                            [nodeId IN nodeIds | gds.util.asNode(nodeId).name] AS nodeNames,
+                            costs
+                        ORDER BY index", new {name1 = model.From, name2 = model.To}
+                    );
+                    var list1 = await cursor.ToListAsync();
+                    var list = await cursor.ToListAsync(record => new TrackFinderResponse
+                        {
+                            TotalCost = record["totalCost"].As<double>(),
+                            NodeNames = record["nodeNames"].As<string[]>(),
+                            Costs = record["costs"].As<double[]>(),
+                        }
+                    );
+
+                    return list[0];
                 });
             }
             finally
@@ -172,7 +227,6 @@ namespace CityPathWithAngular.Repositories
                     {
                         Id = record["id"].As<long>(),
                         Name = record["name"].As<string>(),
-                        Coordinate = new GeoCoordinate(record["latitude"].As<float>(), record["longitude"].As<float>())
                     });
                 });
             }
@@ -184,7 +238,7 @@ namespace CityPathWithAngular.Repositories
 
         private static void WithDatabase(SessionConfigBuilder sessionConfigBuilder)
         {
-            var neo4jVersion = System.Environment.GetEnvironmentVariable("NEO4J_VERSION") ?? "";
+            var neo4jVersion = Environment.GetEnvironmentVariable("NEO4J_VERSION") ?? "";
             if (!neo4jVersion.StartsWith("4"))
             {
                 return;
@@ -195,7 +249,7 @@ namespace CityPathWithAngular.Repositories
 
         private static string Database()
         {
-            return System.Environment.GetEnvironmentVariable("NEO4J_DATABASE") ?? "movies";
+            return Environment.GetEnvironmentVariable("NEO4J_DATABASE") ?? "movies";
         }
     }
 }

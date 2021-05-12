@@ -43,5 +43,11 @@ namespace CityPathWithAngular.Controllers
             await _neo4JRepository.NewPlace(model);
         }
         
+        [HttpPost("FindTrack")]
+        public async Task FindTrack(TrackFinderRequest model)
+        {
+            await _neo4JRepository.FindTrack(model);
+        }
+        
     }
 }

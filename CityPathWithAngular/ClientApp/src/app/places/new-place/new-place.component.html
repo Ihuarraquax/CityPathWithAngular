@@ -5,17 +5,20 @@
 
 <button class="btn btn-success" (click)="addNewSasiad()">Dodaj sąsiadujące miejsce</button>
 
-<div *ngFor="let sasiad of model.sasiads">
+<div *ngFor="let sasiad of model.sasiads; let i = index">
     <div class="row">
         <div class="col">
             <select class="form-select" [(ngModel)]="sasiad.name">
                 <option [value]="name" *ngFor="let name of availablePlacesNames">{{name}}</option>
-              </select>
+            </select>
         </div>
         <div class="col">
-          <input type="number" class="form-control" placeholder="Odległość (km)" [(ngModel)]="sasiad.distance">
+            <input type="number" class="form-control" placeholder="Odległość (km)" [(ngModel)]="sasiad.distance">
         </div>
-      </div>
+        <div class="col">
+            <button type="button" class="btn btn-danger btn-sm" (click)="removeSasiad(i)">x</button>
+        </div>
+    </div>
 </div>
 
 <button class="btn btn-success" (click)="SavePlace()">Zapisz miejsce</button>

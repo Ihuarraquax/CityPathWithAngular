@@ -1,0 +1,23 @@
+<h4 class="mb-5">Wybierz miejsca od i do</h4>
+
+<div class="row">
+    <div class="col">
+        <div class="form-group">
+            <label for="From">Od:</label>
+            <select class="custom-select" id="From"  [(ngModel)]="request.from">
+                <option [value]="name" *ngFor="let name of placesFrom">{{name}}</option>
+            </select>
+        </div>
+    </div>
+    <div class="col">
+        <div class="form-group">
+            <label for="To">Do:</label>
+            <select class="custom-select" id="To" [(ngModel)]="request.to">
+                <option [value]="name" *ngFor="let name of placesTo">{{name}}</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+
+<button class="btn btn-success" *ngIf="request.from && request.to" (click)="FindTrack()">Znajdz trase</button>

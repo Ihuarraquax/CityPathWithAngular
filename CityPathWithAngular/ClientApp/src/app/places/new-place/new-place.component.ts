@@ -33,7 +33,12 @@ export class NewPlaceComponent implements OnInit {
         this.model.sasiads.push({ name: '', distance: null });
     }
 
+    removeSasiad(index: number) {
+        this.model.sasiads.splice(index, 1);
+    }
+
     SavePlace() {
         this.placesService.SavePlace(this.model).subscribe(() => this.router.navigate(['/places']));
     }
+
 }
