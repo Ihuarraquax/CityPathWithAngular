@@ -47,54 +47,6 @@ namespace CityPathWithAngular.Repositories
             }
         }
 
-        // public async Task AddIntersection(Intersection intersection)
-        // {
-        //     var session = _driver.AsyncSession(WithDatabase);
-        //     try
-        //     {
-        //         await session.WriteTransactionAsync(async transaction =>
-        //         {
-        //             await transaction.RunAsync(@"
-        //                 CREATE (n:Intersection {lat: $lat, lon: $lon, street1: $street1, street2: $street2})",
-        //                 new {lat = intersection.Lat, lon = intersection.Lon, street1 = intersection.Street1, street2 = intersection.Street2}
-        //             );
-        //         });
-        //     }
-        //     finally
-        //     {
-        //         await session.CloseAsync();
-        //     }
-        // }
-        //
-        // public async Task AddPathBetweenIntersection(Intersection a, Intersection b)
-        // {
-        //     var s1Coord = new GeoCoordinate(a.Lat, a.Lon);
-        //     var s2Coord = new GeoCoordinate(b.Lat, b.Lon);
-        //
-        //     var distance = s1Coord.DistanceTo(s2Coord);
-        //
-        //
-        //     var session = _driver.AsyncSession(WithDatabase);
-        //     try
-        //     {
-        //         await session.WriteTransactionAsync(async transaction =>
-        //         {
-        //             await transaction.RunAsync(@"
-        //                 MATCH
-        //                   (a:Intersection),
-        //                   (b:Intersection)
-        //                 WHERE a.street1 = $as1 AND a.street2 = $as2 AND b.street1 = $bs1 AND b.street2 = $bs2
-        //                 CREATE (a)-[r:Path {distance: $dist}]->(b)",
-        //                 new {as1 = a.Street1, as2 = a.Street2, bs1 = b.Street1, bs2 = b.Street2, dist = distance}
-        //             );
-        //         });
-        //     }
-        //     finally
-        //     {
-        //         await session.CloseAsync();
-        //     }
-        // }
-
         public async Task<List<Place>> GetAllPlaces()
         {
             var session = _driver.AsyncSession(WithDatabase);
@@ -158,16 +110,6 @@ namespace CityPathWithAngular.Repositories
             {
                 return await session.ReadTransactionAsync(async transaction =>
                 {
-                    // await transaction.RunAsync(@"
-                    //     CALL gds.graph.create(
-                    //         'myGraph',
-                    //         'Place',
-                    //         'Path',
-                    //         {
-                    //             relationshipProperties: 'distance'
-                    //         }
-                    //     )
-                    //     ");
                     var cursor = await transaction.RunAsync(@"
                         MATCH (source:Place {name: '$name1'}), (target:Place {name: '$name2'})
                         CALL gds.beta.shortestPath.dijkstra.stream({

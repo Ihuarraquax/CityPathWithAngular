@@ -1,6 +1,5 @@
 using System;
 using CityPathWithAngular.Repositories;
-using CityPathWithAngular.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -35,7 +34,6 @@ namespace CityPathWithAngular
                 )
             ));
             services.AddScoped<INeo4jRepository, Neo4jRepository>();
-            services.AddScoped<OSMImporter>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
