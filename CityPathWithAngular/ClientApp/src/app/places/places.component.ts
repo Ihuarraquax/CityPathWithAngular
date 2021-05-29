@@ -18,6 +18,9 @@ export class PlacesComponent implements OnInit {
         private router: Router) { }
 
     ngOnInit() {
+        this.placesService.SearchPlaces('').subscribe(resp => {
+            this.places = resp;
+        });
     }
 
     searchPlaces() {

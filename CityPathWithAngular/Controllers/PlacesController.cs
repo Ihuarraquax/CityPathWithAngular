@@ -61,5 +61,11 @@ namespace CityPathWithAngular.Controllers
         {
             await _neo4JRepository.DeletePlace(id);
         }
+        
+        [HttpDelete("paths/{id}")]
+        public async Task DeletePath(int id)
+        {
+            await _neo4JRepository.DeletePath(id);
+        }
     }
 }

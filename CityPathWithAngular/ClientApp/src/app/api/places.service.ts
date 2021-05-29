@@ -9,6 +9,7 @@ import { TrackFinderRequest, TrackFinderResponse } from '../track-finder/track-f
 export class PlacesService {
 
 
+
     constructor(private http: HttpClient, @Inject('BASE_URL') private baseUrl: string) {
 
     }
@@ -36,6 +37,9 @@ export class PlacesService {
         return this.http.delete(this.baseUrl + 'places/' + id);
     }
 
+    DeletePath(id: number) {
+        return this.http.delete(this.baseUrl + 'places/paths/' + id);
+    }
     FindTrack(request: TrackFinderRequest) {
         return this.http.post<TrackFinderResponse>(this.baseUrl + 'places/FindTrack', request);
     }
@@ -48,4 +52,12 @@ export interface Place {
 export interface PlaceDetails {
     id: string;
     name: string;
+    paths: Path[];
+}
+
+export interface Path {
+    toName: string;
+    fromName: string;
+    distance: number;
+    pathId: number;
 }

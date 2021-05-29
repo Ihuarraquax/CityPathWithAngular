@@ -19,6 +19,7 @@ namespace CityPathWithAngular.Repositories
         Task<TrackFinderResponse> FindTrack(TrackFinderRequest model);
         Task DeletePlace(int id);
         Task<PlaceDetails> GetPlace(long id);
+        Task DeletePath(int id);
     }
 
     public class Neo4jRepository : INeo4jRepository
@@ -185,7 +186,7 @@ ORDER BY index
                     var cursor = await transaction.RunAsync(@"
                         Match (a:Place)-[r]-(b)
                         WHERE id(a) = $id
-                        Return a.name, b.name, r.distance"
+                        Return a.name, b.name, r.distance, id(r)"
                         ,
                         new {id = id}
                     );
@@ -195,6 +196,7 @@ ORDER BY index
                         FromName = record["a.name"].As<string>(),
                         ToName = record["b.name"].As<string>(),
                         Distance = record["r.distance"].As<double>(),
+                        PathId = record["id(r)"].As<long>(),
                     });
                     if (paths != null && paths.Count > 0)
                     {
@@ -209,6 +211,25 @@ ORDER BY index
                     {
                         return null;
                     }
+                });
+            }
+            finally
+            {
+                await session.CloseAsync();
+            }
+        }
+
+        public async Task DeletePath(int id)
+        {
+            var session = _driver.AsyncSession(WithDatabase);
+            try
+            {
+                await session.WriteTransactionAsync(async transaction =>
+                {
+                    await transaction.RunAsync(@"
+                        MATCH ()-[r]-() WHERE id(r)=$id DELETE r",
+                        new {id = id}
+                    );
                 });
             }
             finally
