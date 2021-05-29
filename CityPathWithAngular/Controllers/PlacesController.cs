@@ -28,26 +28,38 @@ namespace CityPathWithAngular.Controllers
             {
                 return await _neo4JRepository.GetAllPlaces();
             }
+
             return await _neo4JRepository.Search(search);
         }
-        
+
         [HttpGet]
         public async Task<List<Place>> GetAllPlaces()
         {
             return await _neo4JRepository.GetAllPlaces();
         }
-        
+
+        [HttpGet("{id}")]
+        public async Task<PlaceDetails> GetPlace(long id)
+        {
+            return await _neo4JRepository.GetPlace(id);
+        }
+
         [HttpPost]
         public async Task NewPlace(NewPlaceModel model)
         {
             await _neo4JRepository.NewPlace(model);
         }
-        
+
         [HttpPost("FindTrack")]
-        public async Task FindTrack(TrackFinderRequest model)
+        public async Task<TrackFinderResponse> FindTrack(TrackFinderRequest model)
         {
-            await _neo4JRepository.FindTrack(model);
+            return await _neo4JRepository.FindTrack(model);
         }
-        
+
+        [HttpDelete("{id}")]
+        public async Task DeleteTrack(int id)
+        {
+            await _neo4JRepository.DeletePlace(id);
+        }
     }
 }

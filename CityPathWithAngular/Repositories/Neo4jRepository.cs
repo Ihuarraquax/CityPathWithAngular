@@ -17,6 +17,8 @@ namespace CityPathWithAngular.Repositories
         Task<List<Place>> GetAllPlaces();
         Task NewPlace(NewPlaceModel model);
         Task<TrackFinderResponse> FindTrack(TrackFinderRequest model);
+        Task DeletePlace(int id);
+        Task<PlaceDetails> GetPlace(long id);
     }
 
     public class Neo4jRepository : INeo4jRepository
@@ -111,35 +113,102 @@ namespace CityPathWithAngular.Repositories
                 return await session.ReadTransactionAsync(async transaction =>
                 {
                     var cursor = await transaction.RunAsync(@"
-                        MATCH (source:Place {name: '$name1'}), (target:Place {name: '$name2'})
-                        CALL gds.beta.shortestPath.dijkstra.stream({
-                            nodeProjection: 'Place',
-                            relationshipProjection: 'Path',
-                            relationshipProperties: 'distance',
-                            sourceNode: id(source),
-                            targetNode: id(target),
-                            relationshipWeightProperty: 'distance'
-                        })
-                        YIELD index, sourceNode, targetNode, totalCost, nodeIds, costs
-                        RETURN
-                            index,
-                            gds.util.asNode(sourceNode).name AS sourceNodeName,
-                            gds.util.asNode(targetNode).name AS targetNodeName,
-                            totalCost,
-                            [nodeId IN nodeIds | gds.util.asNode(nodeId).name] AS nodeNames,
-                            costs
-                        ORDER BY index", new {name1 = model.From, name2 = model.To}
+MATCH (start:Place {name: $name1}), (end:Place {name: $name2})
+CALL gds.beta.shortestPath.dijkstra.stream({
+  nodeProjection: 'Place',
+  relationshipProjection: {
+    Distance: {
+      type: 'Path',
+      properties: 'distance',
+      orientation: 'UNDIRECTED'
+    }
+  },
+  sourceNode: id(start),
+  targetNode: id(end),
+  relationshipWeightProperty: 'distance'
+})
+YIELD index, sourceNode, targetNode, totalCost, nodeIds, costs
+RETURN
+    index,
+    gds.util.asNode(sourceNode).name AS sourceNodeName,
+    gds.util.asNode(targetNode).name AS targetNodeName,
+    totalCost,
+    [nodeId IN nodeIds | gds.util.asNode(nodeId).name] AS nodeNames,
+    costs
+ORDER BY index
+                        ", new {name1 = model.From, name2 = model.To}
                     );
-                    var list1 = await cursor.ToListAsync();
+
                     var list = await cursor.ToListAsync(record => new TrackFinderResponse
                         {
                             TotalCost = record["totalCost"].As<double>(),
-                            NodeNames = record["nodeNames"].As<string[]>(),
-                            Costs = record["costs"].As<double[]>(),
+                            NodeNames = record["nodeNames"].As<List<object>>(),
+                            Costs = record["costs"].As<List<object>>()
                         }
                     );
+                    return list.Count > 0 ? list[0] : null;
+                });
+            }
+            finally
+            {
+                await session.CloseAsync();
+            }
+        }
 
-                    return list[0];
+        public async Task DeletePlace(int id)
+        {
+            var session = _driver.AsyncSession(WithDatabase);
+            try
+            {
+                await session.WriteTransactionAsync(async transaction =>
+                {
+                    await transaction.RunAsync(@"
+                        MATCH (n) where id(n) = $id
+                        DETACH DELETE n",
+                        new {id = id}
+                    );
+                });
+            }
+            finally
+            {
+                await session.CloseAsync();
+            }
+        }
+
+        public async Task<PlaceDetails> GetPlace(long id)
+        {
+            var session = _driver.AsyncSession(WithDatabase);
+            try
+            {
+                return await session.ReadTransactionAsync(async transaction =>
+                {
+                    var cursor = await transaction.RunAsync(@"
+                        Match (a:Place)-[r]-(b)
+                        WHERE id(a) = $id
+                        Return a.name, b.name, r.distance"
+                        ,
+                        new {id = id}
+                    );
+
+                    var paths = await cursor.ToListAsync(record => new Path
+                    {
+                        FromName = record["a.name"].As<string>(),
+                        ToName = record["b.name"].As<string>(),
+                        Distance = record["r.distance"].As<double>(),
+                    });
+                    if (paths != null && paths.Count > 0)
+                    {
+                        return new PlaceDetails
+                        {
+                            Id = id,
+                            Name = paths[0].FromName,
+                            Paths = paths
+                        };
+                    }
+                    else
+                    {
+                        return null;
+                    }
                 });
             }
             finally

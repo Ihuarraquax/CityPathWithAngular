@@ -13,12 +13,17 @@
         <tr>
             <th>id</th>
             <th>nazwa</th>
+            <th></th>
         </tr>
     </thead>
     <tbody>
         <tr *ngFor="let place of places">
             <td>{{ place.id }}</td>
             <td>{{ place.name }}</td>
+            <td>
+                <button type="button" class="btn btn-warning btn-sm" (click)="gotoDetails(place)">Edycja</button>
+                <button type="button" class="btn btn-danger btn-sm" (click)="deletePlace(place)">X</button>
+            </td>
         </tr>
     </tbody>
 </table>

@@ -1,3 +1,4 @@
+import { Router } from '@angular/router';
 import { Place, PlacesService } from './../api/places.service';
 import { Component, OnInit } from '@angular/core';
 import { FormControl } from '@angular/forms';
@@ -12,7 +13,9 @@ export class PlacesComponent implements OnInit {
     search = new FormControl('');
     places: Place[];
 
-    constructor(private placesService: PlacesService) { }
+    constructor(
+        private placesService: PlacesService,
+        private router: Router) { }
 
     ngOnInit() {
     }
@@ -21,5 +24,15 @@ export class PlacesComponent implements OnInit {
         this.placesService.SearchPlaces(this.search.value).subscribe(resp => {
             this.places = resp;
         });
+    }
+
+    deletePlace(place: Place) {
+        this.placesService.DeletePlace(place.id).subscribe(resp => {
+            this.places = this.places.filter(_ => _.id !== place.id);
+        });
+    }
+
+    gotoDetails(place: Place) {
+        this.router.navigate(['/places/details', { id: place.id }]);
     }
 }

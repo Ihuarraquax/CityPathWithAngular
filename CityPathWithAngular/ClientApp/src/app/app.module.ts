@@ -10,6 +10,7 @@ import { HomeComponent } from './home/home.component';
 import { PlacesComponent } from './places/places.component';
 import { NewPlaceComponent } from './places/new-place/new-place.component';
 import { TrackFinderComponent } from './track-finder/track-finder.component';
+import { DetailsPlaceComponent } from './places/details-place/details-place.component';
 
 @NgModule({
   declarations: [
@@ -18,7 +19,8 @@ import { TrackFinderComponent } from './track-finder/track-finder.component';
     HomeComponent,
     PlacesComponent,
     NewPlaceComponent,
-    TrackFinderComponent
+    TrackFinderComponent,
+    DetailsPlaceComponent
   ],
   imports: [
     BrowserModule.withServerTransition({ appId: 'ng-cli-universal' }),
@@ -28,6 +30,7 @@ import { TrackFinderComponent } from './track-finder/track-finder.component';
     RouterModule.forRoot([
       { path: '', component: HomeComponent, pathMatch: 'full' },
       { path: 'places/new', component: NewPlaceComponent },
+      { path: 'places/details', component: DetailsPlaceComponent },
       { path: 'places', component: PlacesComponent },
       { path: 'track-finder', component: TrackFinderComponent },
     ])
